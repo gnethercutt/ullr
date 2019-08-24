@@ -23,7 +23,8 @@ provider:
         - "arn:aws:s3:::${file(./config.${self:provider.stage}.yml):contentBucket}/*"
         - "arn:aws:s3:::${file(./config.${self:provider.stage}.yml):indexBucket}"
         - "arn:aws:s3:::${file(./config.${self:provider.stage}.yml):indexBucket}/*"
-
+  iamManagedPolicies:
+    - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
   environment:
     indexBucket: ${file(./config.${self:provider.stage}.yml):indexBucket}
     contentBucket: ${file(./config.${self:provider.stage}.yml):contentBucket}
@@ -35,6 +36,7 @@ functions:
   ullrIngest:
     handler: org.nethercutt.ullr.UllrS3Handler
     timeout: 30
+    tracing: Active
     events:
       - s3: ${file(./config.${self:provider.stage}.yml):contentBucket}
       - s3: 
@@ -43,6 +45,7 @@ functions:
   ullrSearch:
     handler: org.nethercutt.ullr.UllrSearch
     timeout: 15
+    tracing: Active
     environment:
       cacheRefreshSec: 10
 
