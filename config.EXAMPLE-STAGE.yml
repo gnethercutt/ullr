@@ -1,0 +1,3 @@
+deploymentBucket: YOUR-DEPLOYMENT-BUCKET
+contentBucket: YOUR-CONTENT-BUCKET
+indexBucket: YOUR-INDEX-BUCKET

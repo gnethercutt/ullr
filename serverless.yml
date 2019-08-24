@@ -1,0 +1,70 @@
+service: ullr
+
+provider:
+  name: aws
+  runtime: java8
+  deploymentBucket:
+    name: ${file(./config.${self:provider.stage}.yml):deploymentBucket}
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:GetBucketLocation"
+        - "s3:ListAllMyBuckets"
+      Resource:
+        - "arn:aws:s3:::*"
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource:
+        - "arn:aws:s3:::${file(./config.${self:provider.stage}.yml):contentBucket}"
+        - "arn:aws:s3:::${file(./config.${self:provider.stage}.yml):contentBucket}/*"
+        - "arn:aws:s3:::${file(./config.${self:provider.stage}.yml):indexBucket}"
+        - "arn:aws:s3:::${file(./config.${self:provider.stage}.yml):indexBucket}/*"
+
+  environment:
+    indexBucket: ${file(./config.${self:provider.stage}.yml):indexBucket}
+    contentBucket: ${file(./config.${self:provider.stage}.yml):contentBucket}
+
+package:
+  artifact: target/ullr-0.0.1.jar
+  
+functions:
+  ullrIngest:
+    handler: org.nethercutt.ullr.UllrS3Handler
+    timeout: 30
+    events:
+      - s3: ${file(./config.${self:provider.stage}.yml):contentBucket}
+      - s3: 
+          bucket: ${file(./config.${self:provider.stage}.yml):contentBucket}
+          event: s3:ObjectRemoved:*
+  ullrSearch:
+    handler: org.nethercutt.ullr.UllrSearch
+    timeout: 15
+    environment:
+      cacheRefreshSec: 10
+
+stackPolicy:
+    - Effect: Allow
+      Principal: '*'
+      Action: 'Update:*'
+      Resource: '*'
+    - Effect: Deny
+      Principal: '*'
+      Resource: '*'
+      Action:
+        - Update:Replace
+        - Update:Delete
+      Condition:
+        StringEquals:
+          ResourceType:
+            - AWS::S3::Bucket
+resources:
+  Resources:
+    IndexBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${file(./config.${self:provider.stage}.yml):indexBucket}
+

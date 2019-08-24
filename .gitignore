@@ -1,0 +1,35 @@
+# Java class files
+*.class
+
+# IDE files
+.classpath
+.project
+.settings/
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Serverless framework state
+.serverless/
+
+.factorypath
+/target
+/overlays
+*keystore.jks
+ansible.cfg
+.cache/
+.vagrant/
+
+# Testing files
+.env/
+*.pyc
+*.vim
+results/
+*.sublime-*
+json.pretty.output
+output/
+system-tests/target
+system-tests/test-output/
+/system-tests/output
